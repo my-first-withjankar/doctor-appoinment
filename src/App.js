@@ -5,6 +5,9 @@ import About from './pages/About';
 import Navbar from './pages/Shared/Navbar';
 import Login from './pages/Shared/Login';
 import Appointment from './pages/Appointment/Appointment';
+import Signup from './pages/Shared/Signup';
+import RequireAuth from './pages/Shared/RequireAuth';
+import { Toaster } from 'react-hot-toast';
 
 
 
@@ -16,8 +19,12 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/appointment" element={<Appointment />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/appointment" element={<RequireAuth>
+          <Appointment />
+        </RequireAuth>} />
       </Routes>
+      <Toaster />
     </div>
   );
 }
