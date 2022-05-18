@@ -4,27 +4,23 @@ import { useAuthState } from 'react-firebase-hooks/auth';
 import auth from '../../firebase.init';
 import toast from 'react-hot-toast';
 
-const BookingModal = ({ treatment, date, setTreatment }) => {
+const BookingModal = ({ date, treatment, setTreatment, refetch }) => {
     const { _id, name, slots } = treatment;
     const [user] = useAuthState(auth);
-
-    // const formattedDate = format(date, 'PP');
-    const handleSubmit = event => {
-        event.preventDefault()
+    const formattedDate = format(date, 'PP');
+    const handleBooking = event => {
+        event.preventDefault();
         const slot = event.target.slot.value;
-
-        console.log(_id, date, name, slot);
 
         const booking = {
             treatmentId: _id,
             treatment: name,
-            date: format(date, 'PP'),
+            date: formattedDate,
             slot,
-            patientName: user.displayName,
             patient: user.email,
+            patientName: user.displayName,
             phone: event.target.phone.value
         }
-
 
         fetch('http://localhost:5000/booking', {
             method: 'POST',
@@ -36,25 +32,14 @@ const BookingModal = ({ treatment, date, setTreatment }) => {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    toast.success(`appointment is set ${format(date, 'PP')} at ${slot}`, {
-                        style: {
-                            border: '1px solid black',
-                        },
-                    });
+                    toast(`Appointment is set, ${formattedDate} at ${slot}`)
                 }
                 else {
-                    toast.error(`already have an appointment  ${data.booked?.date} at ${data.booked?.slot}`, {
-                        style: {
-                            border: '1px solid black',
-                            background: 'red',
-                            color: 'white'
-                        },
-                    });
+                    toast.error(`Already have and appointment on ${data.booking?.date} at ${data.booking?.slot}`)
                 }
-                setTreatment('')
-            })
-
-
+                setTreatment(null);
+                refetch();
+            });
     }
 
     return (
@@ -63,18 +48,19 @@ const BookingModal = ({ treatment, date, setTreatment }) => {
             <div className="modal modal-bottom sm:modal-middle">
                 <div className="modal-box">
                     <label htmlFor="booking-modal" className="btn btn-sm btn-circle absolute right-2 top-2">✕</label>
-                    <h3 className="font-bold text-lg">{name}</h3>
-                    <form
-                        onSubmit={handleSubmit}
-                        className='grid grid-cols-1 gap-3 justify-items-center mt-10'>
+                    <h3 className="font-bold text-lg text-secondary">Booking for: {name}</h3>
+                    <form onSubmit={handleBooking} className='grid grid-cols-1 gap-3 justify-items-center mt-2'>
                         <input type="text" disabled value={format(date, 'PP')} className="input input-bordered w-full max-w-xs" />
                         <select name="slot" className="select select-bordered w-full max-w-xs">
                             {
-                                slots.map((slot, index) => <option key={index} value={slot}>{slot}</option>)
+                                slots.map((slot, index) => <option
+                                    key={index}
+                                    value={slot}
+                                >{slot}</option>)
                             }
                         </select>
-                        <input type="text" name="" readOnly value={user.displayName || ''} className="input input-bordered w-full max-w-xs" />
-                        <input type="email" name="email" readOnly value={user.email || ''} className="input input-bordered w-full max-w-xs" />
+                        <input type="text" name="name" disabled value={user?.displayName || ''} className="input input-bordered w-full max-w-xs" />
+                        <input type="email" name="email" disabled value={user?.email || ''} className="input input-bordered w-full max-w-xs" />
                         <input type="text" name="phone" placeholder="Phone Number" className="input input-bordered w-full max-w-xs" />
                         <input type="submit" value="Submit" className="btn btn-secondary w-full max-w-xs" />
                     </form>
